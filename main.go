@@ -105,6 +105,7 @@ func checkTime(rotateLog chan struct{}) {
 	for {
 		_, _, newDay := time.Now().Date()
 		if day != newDay {
+			day = newDay
 			rotateLog <- struct{}{}
 		}
 		time.Sleep(time.Duration(time.Second * 5))
