@@ -18,7 +18,7 @@ var fifo, udpDest, outFile *string
 
 func main() {
 	fifo = flag.String("i", "access.log", "Input fifo")
-	outFile = flag.String("o", "log", "Output filename that will be extended with year-month-day")
+	outFile = flag.String("o", "log", "Path to the file that will be extended with a year-month-day format")
 	udpDest = flag.String("u", "", "udp destination, e.g. 127.0.0.1:3309")
 	flag.Parse()
 
@@ -59,6 +59,10 @@ func main() {
 		file.Close()
 		scanner = nil
 	}
+
+	if fileDest != nil {
+		fileDest.Close()
+	}
 }
 
 func createFifo() (io.ReadCloser, error) {
@@ -66,7 +70,7 @@ func createFifo() (io.ReadCloser, error) {
 
 	if os.IsNotExist(err) {
 		/* try to recover the error and create pipe */
-		err = syscall.Mkfifo(*fifo, 0600)
+		err = syscall.Mkfifo(*fifo, 0666)
 
 		if err != nil {
 			return nil, fmt.Errorf("Cant create fifo file: %s", err)
@@ -88,16 +92,6 @@ func createFifo() (io.ReadCloser, error) {
 	}
 
 	return file, nil
-}
-
-func checkSeconds(rotateLog chan struct{}) {
-	for {
-		timeNow := time.Now()
-		if timeNow.Second()%5 == 0 {
-			rotateLog <- struct{}{}
-		}
-		time.Sleep(time.Duration(time.Second))
-	}
 }
 
 func checkTime(rotateLog chan struct{}) {
@@ -187,3 +181,6 @@ func consumeLogLine(lc chan string, wc chan string) {
 func openDestinationLogFile(year int, month time.Month, day int) (wc io.WriteCloser, err error) {
 	return os.OpenFile(fmt.Sprintf("%s-%d-%02d-%02d", *outFile, year, month, day), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 }
+
+
+
