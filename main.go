@@ -8,8 +8,8 @@ import (
 	"log"
 	"net"
 	"os"
-	"time"
 	"syscall"
+	"time"
 )
 
 var fileDest io.WriteCloser
@@ -60,9 +60,6 @@ func main() {
 		scanner = nil
 	}
 
-	if fileDest != nil {
-		fileDest.Close()
-	}
 }
 
 func createFifo() (io.ReadCloser, error) {
@@ -82,7 +79,7 @@ func createFifo() (io.ReadCloser, error) {
 		return nil, fmt.Errorf("Unknown error when opening named pipe: %s", err)
 	}
 
-	if fi != nil && fi.Mode() & os.ModeNamedPipe == 0 {
+	if fi != nil && fi.Mode()&os.ModeNamedPipe == 0 {
 		return nil, fmt.Errorf("The input file is not a named pipe: %s", err)
 	}
 
@@ -106,7 +103,7 @@ func checkTime(rotateLog chan struct{}) {
 	}
 }
 
-func writeLine(mw io.Writer, wc chan string, rotateLog chan struct{})  error {
+func writeLine(mw io.Writer, wc chan string, rotateLog chan struct{}) {
 	var err error
 
 	for {
@@ -117,22 +114,21 @@ func writeLine(mw io.Writer, wc chan string, rotateLog chan struct{})  error {
 				fmt.Fprint(os.Stderr, "Writing error, closing sockets/file and reopen")
 				mw, err = setDestinations()
 				if err != nil {
-					return err
+					return
 				}
 			}
 		case <-rotateLog:
 			mw, err = setDestinations()
 			if err != nil {
-				return err
+				return
 			}
 		}
 	}
 
-	return nil
 }
 
 func setDestinations() (io.Writer, error) {
-	var err error = nil
+	var err error
 	year, month, day := time.Now().Date()
 
 	if *fifo != "" {
@@ -159,17 +155,15 @@ func setDestinations() (io.Writer, error) {
 		}
 		if fileDest != nil {
 			return io.MultiWriter(fileDest, udpConn), nil
-		} else {
-			return io.MultiWriter(udpConn), nil
 		}
+		return io.MultiWriter(udpConn), nil
 	}
 
 	/* could also log to a tcp socket, syslog server, etc */
 	if fileDest != nil {
 		return io.MultiWriter(fileDest), nil
-	} else {
-		return nil, fmt.Errorf("Error: %s", "No output given")
 	}
+	return nil, fmt.Errorf("Error: %s", "No output given")
 }
 
 func consumeLogLine(lc chan string, wc chan string) {
@@ -181,6 +175,3 @@ func consumeLogLine(lc chan string, wc chan string) {
 func openDestinationLogFile(year int, month time.Month, day int) (wc io.WriteCloser, err error) {
 	return os.OpenFile(fmt.Sprintf("%s-%d-%02d-%02d", *outFile, year, month, day), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 }
-
-
-
