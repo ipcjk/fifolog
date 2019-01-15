@@ -70,22 +70,22 @@ func createFifo() (io.ReadCloser, error) {
 		err = syscall.Mkfifo(*fifo, 0666)
 
 		if err != nil {
-			return nil, fmt.Errorf("Cant create fifo file: %s", err)
+			return nil, fmt.Errorf("cant create fifo file: %s", err)
 		}
 
 		fmt.Println("Created pipe ", *fifo)
 
 	} else if err != nil {
-		return nil, fmt.Errorf("Unknown error when opening named pipe: %s", err)
+		return nil, fmt.Errorf("unknown error when opening named pipe: %s", err)
 	}
 
 	if fi != nil && fi.Mode()&os.ModeNamedPipe == 0 {
-		return nil, fmt.Errorf("The input file is not a named pipe: %s", err)
+		return nil, fmt.Errorf("the input file is not a named pipe: %s", err)
 	}
 
 	file, err := os.Open(*fifo)
 	if err != nil {
-		return nil, fmt.Errorf("Cant open named pipe: %s", err)
+		return nil, fmt.Errorf("cant open named pipe: %s", err)
 	}
 
 	return file, nil
@@ -173,5 +173,6 @@ func consumeLogLine(lc chan string, wc chan string) {
 }
 
 func openDestinationLogFile(year int, month time.Month, day int) (wc io.WriteCloser, err error) {
-	return os.OpenFile(fmt.Sprintf("%s-%d-%02d-%02d", *outFile, year, month, day), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	return os.OpenFile(fmt.Sprintf("%s-%d-%02d-%02d", *outFile, year, month, day),
+		os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 }

@@ -1,0 +1,17 @@
+[Unit]
+Description=fifolog service
+After=network.target
+
+
+[Service]
+Type=simple
+ExecStart=/root/fifolog -i /var/log/input.log -o /var/log/daemon/outputs.log
+WorkingDirectory=/
+User=root
+Group=root
+KillMode=process
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
