@@ -35,7 +35,7 @@ func main() {
 	/* sleep and check for a change of the current day */
 	go checkTime(rotateChannel)
 	// go checkSeconds(rotateChannel)
-
+	
 	/* prepare line  */
 	go consumeLogLine(lineChannel, writeChannel)
 
